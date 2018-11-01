@@ -88,3 +88,21 @@ let all = (tasks: list(t('a)), fin) => {
     );
   };
 };
+
+type pickState =
+  | Pending
+  | Finished;
+
+let pick = (tasks, fin) => {
+  let state = ref(Pending);
+
+  let callback = value =>
+    switch (state^) {
+    | Finished => ()
+    | Pending =>
+      state := Finished;
+      fin(value);
+    };
+
+  List.forEach(tasks, task => task(callback));
+};

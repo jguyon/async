@@ -107,4 +107,24 @@ describe("Async", () => {
       ->Async.consume(_ => expect(values^) |> toEqual([1, 2, 3]) |> fin);
     });
   });
+
+  describe(".pick", () => {
+    testAsync("produces the value from the first task to finish", fin =>
+      Async.pick([delay(1), Async.value(2), delay(3)])
+      ->Async.consume(value => expect(value) |> toEqual(2) |> fin)
+    );
+
+    testAsync("runs tasks in order", fin => {
+      let values = ref([]);
+
+      let addValue = (value, fin) => {
+        values := values^ @ [value];
+        fin();
+      };
+
+      Async.pick([addValue(1), addValue(2), addValue(3)])
+      ->Async.flatMap(() => delay())
+      ->Async.consume(() => expect(values^) |> toEqual([1, 2, 3]) |> fin);
+    });
+  });
 });

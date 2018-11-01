@@ -13,3 +13,5 @@ let tap: (t('a), 'a => unit) => t('a);
 let both: (t('a), t('b)) => t(('a, 'b));
 
 let all: list(t('a)) => t(list('a));
+
+let pick: list(t('a)) => t('a);
