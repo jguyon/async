@@ -53,4 +53,34 @@ describe("Async", () => {
       ->Async.consume(value => expect(value) |> toEqual("value") |> fin)
     );
   });
+
+  describe(".both", () => {
+    testAsync("produces values when left task finishes first", fin =>
+      Async.both(Async.value(42), delay("value"))
+      ->Async.consume(value =>
+          expect(value) |> toEqual((42, "value")) |> fin
+        )
+    );
+
+    testAsync("produces values when right task finishes first", fin =>
+      Async.both(delay(42), Async.value("value"))
+      ->Async.consume(value =>
+          expect(value) |> toEqual((42, "value")) |> fin
+        )
+    );
+
+    testAsync("runs tasks in order", fin => {
+      let values = ref([]);
+
+      let addValue = (value, fin) => {
+        values := values^ @ [value];
+        fin();
+      };
+
+      Async.both(addValue("left"), addValue("right"))
+      ->Async.consume(_ =>
+          expect(values^) |> toEqual(["left", "right"]) |> fin
+        );
+    });
+  });
 });

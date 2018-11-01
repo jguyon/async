@@ -15,3 +15,35 @@ let tap = (task: t('a), tapFn: 'a => unit, fin) =>
     tapFn(value);
     fin(value);
   });
+
+type bothState('a, 'b) =
+  | Empty
+  | Left('a)
+  | Right('b)
+  | Finished;
+
+let both = (leftTask: t('a), rightTask: t('b), fin) => {
+  let state = ref(Empty);
+
+  leftTask(leftValue =>
+    switch (state^) {
+    | Finished
+    | Left(_) => ()
+    | Empty => state := Left(leftValue)
+    | Right(rightValue) =>
+      state := Finished;
+      fin((leftValue, rightValue));
+    }
+  );
+
+  rightTask(rightValue =>
+    switch (state^) {
+    | Finished
+    | Right(_) => ()
+    | Empty => state := Right(rightValue)
+    | Left(leftValue) =>
+      state := Finished;
+      fin((leftValue, rightValue));
+    }
+  );
+};
