@@ -1,0 +1,21 @@
+{
+  "name": "@jguyon/async",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "bsb -make-world",
+    "start": "bsb -make-world -w",
+    "clean": "bsb -clean-world",
+    "test": "jest"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/test/**/*_test.bs.js"
+    ]
+  },
+  "devDependencies": {
+    "@glennsl/bs-jest": "^0.4.5",
+    "bs-platform": "^4.0.7"
+  }
+}
