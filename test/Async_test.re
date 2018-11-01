@@ -83,4 +83,28 @@ describe("Async", () => {
         );
     });
   });
+
+  describe(".all", () => {
+    testAsync("produces the empty list given no tasks", fin =>
+      Async.all([])
+      ->Async.consume(value => expect(value) |> toEqual([]) |> fin)
+    );
+
+    testAsync("produces values from all tasks in order", fin =>
+      Async.all([delay(1), Async.value(2), delay(3)])
+      ->Async.consume(value => expect(value) |> toEqual([1, 2, 3]) |> fin)
+    );
+
+    testAsync("runs tasks in order", fin => {
+      let values = ref([]);
+
+      let addValue = (value, fin) => {
+        values := values^ @ [value];
+        fin();
+      };
+
+      Async.all([addValue(1), addValue(2), addValue(3)])
+      ->Async.consume(_ => expect(values^) |> toEqual([1, 2, 3]) |> fin);
+    });
+  });
 });
