@@ -4,6 +4,8 @@ type t('a) = ('a => unit) => unit;
 
 let consume: (t('a), 'a => unit) => unit;
 
+let subscribe: t('a) => t('a);
+
 let value: 'a => t('a);
 
 let map: (t('a), 'a => 'b) => t('b);

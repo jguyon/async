@@ -20,6 +20,74 @@ describe("Async", () => {
     )
   );
 
+  describe(".subscribe", () => {
+    test("runs the task", () => {
+      let count = ref(0);
+
+      let _ =
+        Async.subscribe(fin => {
+          count := count^ + 1;
+          fin();
+        });
+
+      expect(count^) |> toEqual(1);
+    });
+
+    test("runs the task only once", () => {
+      let count = ref(0);
+
+      let task =
+        Async.subscribe(fin => {
+          count := count^ + 1;
+          fin();
+        });
+
+      task(() => ());
+      task(() => ());
+
+      expect(count^) |> toEqual(1);
+    });
+
+    testAsync("produces the value from the given pending task", fin => {
+      let task = Async.subscribe(delay(42));
+
+      let value1 = ref(None);
+      task(value => value1 := Some(value));
+
+      let value2 = ref(None);
+      task(value => value2 := Some(value));
+
+      delay(~ms=1, ())
+      ->Async.consume(() =>
+          expect((value1^, value2^))
+          |> toEqual((Some(42), Some(42)))
+          |> fin
+        );
+    });
+
+    test("produces the value from the given finished task", () => {
+      let task = Async.subscribe(Async.value(42));
+
+      let value1 = ref(None);
+      task(value => value1 := Some(value));
+
+      let value2 = ref(None);
+      task(value => value2 := Some(value));
+
+      expect((value1^, value2^)) |> toEqual((Some(42), Some(42)));
+    });
+
+    testAsync("runs subscribers in order", fin => {
+      let task = Async.subscribe(delay());
+
+      let values = ref([]);
+
+      task(() => values := values^ @ [1]);
+      task(() => values := values^ @ [2]);
+      task(() => expect(values^) |> toEqual([1, 2]) |> fin);
+    });
+  });
+
   describe(".value", () =>
     testAsync("produces the given value", fin =>
       Async.value("value")

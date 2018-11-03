@@ -6,6 +6,29 @@ type result('a, 'e) = t(Result.t('a, 'e));
 
 let consume = (task: t('a), fin) => task(fin);
 
+type subscribeState('a) =
+  | Pending(list('a => unit))
+  | Finished('a);
+
+let subscribe = (task: t('a)) => {
+  let state = ref(Pending([]));
+
+  task(value =>
+    switch (state^) {
+    | Finished(_) => ()
+    | Pending(callbacks) =>
+      state := Finished(value);
+      List.reverse(callbacks)->List.forEach(cb => cb(value));
+    }
+  );
+
+  fin =>
+    switch (state^) {
+    | Finished(value) => fin(value)
+    | Pending(callbacks) => state := Pending([fin, ...callbacks])
+    };
+};
+
 let value = (value, fin) => fin(value);
 
 let ok = (value, fin) => fin(Result.Ok(value));
